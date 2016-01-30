@@ -2,15 +2,15 @@ package com.example.myapplication2.app;
 
 import android.content.Context;
 import android.util.Log;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public class WeatherXmlPullParser {
 
@@ -21,10 +21,10 @@ public class WeatherXmlPullParser {
     private static final String LINK_FORECAST_FOR_PARTICULAR_CITY = "http://export.yandex.ru/weather-ng/forecasts/";
     private static final String FORECAST_START_TAG = "forecast";
 
-    public static Map <Country, ArrayList <City>> getCountriesAndCitiesList(Context ctx) {
+    public static LinkedHashMap <Country, ArrayList <City>> getCountriesAndCitiesList(Context ctx) {
 
         ArrayList<Country> countries = new ArrayList<Country>();
-        Map <Country, ArrayList <City>> result = new LinkedHashMap<Country, ArrayList <City>>();
+        LinkedHashMap <Country, ArrayList <City>> result = new LinkedHashMap<Country, ArrayList <City>>();
         Country tempCountry = null;
         City tempCity = null;
         ArrayList<City> cities = new ArrayList<City>();
@@ -54,12 +54,10 @@ public class WeatherXmlPullParser {
 //
 //                            }
                             if (tagname.equalsIgnoreCase(KEY_COUNTRY)) {
-                                Log.i(myTag, "Found country " + xpp.getAttributeValue(null, "name") + xpp.getDepth());
                                 tempCountry = new Country(xpp.getAttributeValue(null, "name"));
                                 countries.add(tempCountry);
                             }
                             if (tagname.equalsIgnoreCase(KEY_CITY)) {
-                                Log.i(myTag, "Found city " + xpp.getAttributeValue(null, "id") + xpp.getDepth());
                                 tempCity = new City();
                                 tempCity.setId(Long.parseLong(xpp.getAttributeValue(null, "id")));
                                 tempCity.setCountry(xpp.getAttributeValue(null, "country"));
@@ -69,14 +67,14 @@ public class WeatherXmlPullParser {
                                     // Get attributes.
                                     String  attr = xpp.getAttributeValue(null, "country");
                                     String  text = null;
-                                    Log.i(myTag, "Text on atributes etap" + xpp.getText());
+
                                     // Get item text if present.
-                                  //  eventType = xpp.next();
-                                  //  Log.i(myTag, xpp.getText());
+                                    //  eventType = xpp.next();
+                                    //  Log.i(myTag, xpp.getText());
                                     while ( eventType != XmlPullParser.END_TAG || 0 != KEY_CITY.compareTo(xpp.getName()) ) {
                                         if ( eventType == XmlPullParser.TEXT ) {
                                             text = xpp.getText();
-                                            Log.i(myTag, "Text on next after atributes etap" + text);
+
                                             tempCity.setName(text);
                                             cities.add(tempCity);
                                         }
@@ -120,7 +118,6 @@ public class WeatherXmlPullParser {
 
         // return the populated list.
         for (Country co: countries) {
-            Log.i(myTag, "List of countries" + co.getName());
             ArrayList<City> citiesOfCountry = new ArrayList<City>();
             for (City ci: cities) {
                 if (ci.getCountry().equals(co.getName())) {
@@ -129,48 +126,36 @@ public class WeatherXmlPullParser {
             }
             co.setCities(citiesOfCountry);
             result.put(co, citiesOfCountry);
-            Log.i(myTag, "Country" + co.getName() + " has cities" + citiesOfCountry.size());
+            //   Log.i(myTag, "Country" + co.getName() + " has cities" + citiesOfCountry.size());
         }
 
         return result;
     }
 
-    public static String getLinkToSiteForCity(Context ctx, City city) {
+    public static String getLinkToSiteForCity(Context ctx, long id) {
 
-        String linkToWeatherForCity = LINK_FORECAST_FOR_PARTICULAR_CITY + city.getId() + ".xml";
+        String linkToWeatherForCity = LINK_FORECAST_FOR_PARTICULAR_CITY + id + ".xml";
         String linkToSite = "";
-        String saveToFileName = "Cityid" + city.getId();
-        try {
-            DataDownloader.downloadFromUrl(linkToWeatherForCity, ctx.openFileOutput(saveToFileName, MainActivity.MODE_PRIVATE));
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            FileInputStream fis = ctx.openFileInput(saveToFileName);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
-            Log.i(myTag, "Opened file xml city weather");
+        String saveToFileName = "Cityid" + id;
 
-            try {
+        try {
+            String res = WeatherPageFragment.downloadData(linkToWeatherForCity);
+            Log.i(myTag, "Started parsing for city" + id);
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            XmlPullParser xpp = factory.newPullParser();
+            xpp.setInput(new StringReader(res));
+            int eventType = xpp.getEventType();
 
-                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-                XmlPullParser xpp = factory.newPullParser();
-                xpp.setInput(reader);
-                int eventType = xpp.getEventType();
-                Log.i(myTag, "First event type" + xpp.getName());
-                // Loop through pull events until we reach END_DOCUMENT
-                while (eventType != XmlPullParser.END_DOCUMENT) {
-                    if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
-                        linkToSite = xpp.getAttributeValue(null, "link");
-                    }
-                    else {
-                        xpp.next();
-                    }
+            // Loop through pull events until we reach END_DOCUMENT
+            if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
+                linkToSite = xpp.getAttributeValue(null, "link");
+                Log.i(myTag, "Found link for city" + id);
+            }
+            else {
+                xpp.next();
+                if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
+                    linkToSite = xpp.getAttributeValue(null, "link");
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                fis.close();
             }
 
         }

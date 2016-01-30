@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".MainActivity" >
+
+
+    <ExpandableListView
+            android:id="@+id/exListView"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:indicatorLeft="?android:attr/expandableListPreferredItemIndicatorLeft"
+            android:divider="#A4C739"
+            android:dividerHeight="0.5dp">
+    </ExpandableListView>
+
+</RelativeLayout>

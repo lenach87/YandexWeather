@@ -6,10 +6,9 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.ExpandableListView;
+import android.util.Log;
 
-public class MainActivity extends Activity implements ExpandableListView.OnChildClickListener {
+public class MainActivity extends Activity implements MainCitiesListFragment.OnFragmentInteractionListener {
 
 
     public static final String GUID2 = "GUID";
@@ -20,17 +19,13 @@ public class MainActivity extends Activity implements ExpandableListView.OnChild
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        fragmentManager = getFragmentManager();
-
         if (savedInstanceState == null) {
-//            if it's the first time, create and display the button fragment
-            MainCitiesListFragment listFragment = new MainCitiesListFragment();
+            fragmentManager= getFragmentManager();
+//
             fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, listFragment)
+                    .add(R.id.fragment_container, MainCitiesListFragment.newInstance())
                     .addToBackStack(null)
                     .commit();
-        } else {
-            //activity recreated from saved state
         }
     }
 
@@ -43,15 +38,16 @@ public class MainActivity extends Activity implements ExpandableListView.OnChild
     }
 
     @Override
-    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-        WeatherPageFragment weatherPageFragment = new WeatherPageFragment();
-        Bundle bundle = new Bundle();
-        bundle.putLong(MainActivity.GUID2, id);
-        weatherPageFragment.setArguments(bundle);
+    public void onFragmentInteraction(long guid) {
+        Bundle extras = new Bundle();
+        extras.putLong(MainActivity.GUID2, guid);
+        WeatherPageFragment newFragment = WeatherPageFragment.newInstance();
+        newFragment.setArguments(extras);
+        // swap the fragment.
+        Log.i("MainActivity log", "Fragment onChildClick 2 " + guid);
         fragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, weatherPageFragment)
+                .replace(R.id.fragment_container, newFragment)
                 .addToBackStack(null)
                 .commit();
-        return true;
     }
 }

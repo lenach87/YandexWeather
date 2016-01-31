@@ -3,7 +3,7 @@ package com.example.myapplication2.app;
 
 import java.io.Serializable;
 
-public class City implements Serializable {
+public class City implements Serializable, Comparable <City> {
     private String name;
     private Long id;
     private String country;
@@ -45,4 +45,8 @@ public class City implements Serializable {
         return getName();
     }
 
+    @Override
+    public int compareTo (City another) {
+        return getName().compareTo(another.getName());
+    }
 }

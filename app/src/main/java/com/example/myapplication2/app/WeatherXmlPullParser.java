@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 
 public class WeatherXmlPullParser {
@@ -17,8 +18,8 @@ public class WeatherXmlPullParser {
     private static final String KEY_COUNTRY = "country";
     private static final String KEY_CITY = "city";
     private static final String KEY_CITIES = "cities";
-    private static String myTag = "StackSites";
-    private static final String LINK_FORECAST_FOR_PARTICULAR_CITY = "http://export.yandex.ru/weather-ng/forecasts/";
+    private static String myTag = "Yandex Log";
+    public static final String LINK_FORECAST_FOR_PARTICULAR_CITY = "http://export.yandex.ru/weather-ng/forecasts/";
     private static final String FORECAST_START_TAG = "forecast";
 
     public static LinkedHashMap <Country, ArrayList <City>> getCountriesAndCitiesList(Context ctx) {
@@ -124,6 +125,7 @@ public class WeatherXmlPullParser {
                     citiesOfCountry.add(ci);
                 }
             }
+            Collections.sort(citiesOfCountry);
             co.setCities(citiesOfCountry);
             result.put(co, citiesOfCountry);
             //   Log.i(myTag, "Country" + co.getName() + " has cities" + citiesOfCountry.size());
@@ -132,15 +134,12 @@ public class WeatherXmlPullParser {
         return result;
     }
 
-    public static String getLinkToSiteForCity(Context ctx, long id) {
+    public static String getLinkToSiteForCity(String res) {
 
-        String linkToWeatherForCity = LINK_FORECAST_FOR_PARTICULAR_CITY + id + ".xml";
-        String linkToSite = "";
-        String saveToFileName = "Cityid" + id;
+        String linkToSite;
 
         try {
-            String res = WeatherPageFragment.downloadData(linkToWeatherForCity);
-            Log.i(myTag, "Started parsing for city" + id);
+            Log.i(myTag, "Try weather xml pull parser" + res);
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             XmlPullParser xpp = factory.newPullParser();
             xpp.setInput(new StringReader(res));
@@ -149,20 +148,25 @@ public class WeatherXmlPullParser {
             // Loop through pull events until we reach END_DOCUMENT
             if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
                 linkToSite = xpp.getAttributeValue(null, "link");
-                Log.i(myTag, "Found link for city" + id);
+                Log.i(myTag, "Found link for city" + linkToSite);
+                return linkToSite;
             }
             else {
                 xpp.next();
                 if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
                     linkToSite = xpp.getAttributeValue(null, "link");
+                    return linkToSite;
                 }
+                else {
+                    return null;
+                }
+
             }
 
         }
         catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return linkToSite;
-
     }
 }

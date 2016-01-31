@@ -2,16 +2,17 @@ package com.example.myapplication2.app;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
-import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -23,10 +24,17 @@ public class MainCitiesListFragment extends Fragment implements ExpandableListVi
     private LinkedHashMap<Country, ArrayList<City>> countryCollection;
     private ArrayList<Country> countriesList;
     private ArrayList<City> citiesList;
-    ExpandableListView.OnChildClickListener citySelectedCallback;
+    private OnFragmentInteractionListener citySelectedCallback;
 
     public MainCitiesListFragment() {
-        // Required empty public constructor
+        super();
+    }
+
+    public static MainCitiesListFragment newInstance () {
+        MainCitiesListFragment fragment = new MainCitiesListFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -44,15 +52,12 @@ public class MainCitiesListFragment extends Fragment implements ExpandableListVi
 
         expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
             public void onGroupExpand(int groupPosition) {
-                Log.d("Logformain", "onGroupExpand groupPosition = " + groupPosition);
-                Toast.makeText(MainCitiesListFragment.this.getActivity(), countriesList.get(groupPosition) + "is expanded", Toast.LENGTH_LONG).show();
             }
         });
 
         expListView.setOnGroupCollapseListener(new ExpandableListView.OnGroupCollapseListener() {
             public void onGroupCollapse(int groupPosition) {
-                Log.d("Logformain", "onGroupCollapse groupPosition = " + groupPosition);
-                Toast.makeText(MainCitiesListFragment.this.getActivity(), countriesList.get(groupPosition) + "is collapsed", Toast.LENGTH_LONG).show();
+
             }
         });
 
@@ -66,22 +71,13 @@ public class MainCitiesListFragment extends Fragment implements ExpandableListVi
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
 
-        WeatherPageFragment fragment = new WeatherPageFragment();
         City guidCity = (City) expListAdapter.getChild(groupPosition, childPosition);
         long guid = guidCity.getId();
-        // pass the GUID to the fragment.
-        Bundle extras = new Bundle();
-        extras.putLong(MainActivity.GUID2, guid);
-        fragment.setArguments(extras);
-
-        // swap the fragment.
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.add(R.id.fragment_container, fragment);
-        transaction.commit();
+//        Bundle extras = new Bundle();
+//        extras.putLong(MainActivity.GUID2, guid);
+        citySelectedCallback.onFragmentInteraction(guid);
         return true;
     }
-
-
 
     private void createGroupList() {
         countryCollection = WeatherXmlPullParser.getCountriesAndCitiesList(MainCitiesListFragment.this.getActivity());
@@ -104,6 +100,7 @@ public class MainCitiesListFragment extends Fragment implements ExpandableListVi
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.i("Fragment log", "Fragment  onActivityCreated");
         LayoutInflater inflater = (LayoutInflater) MainCitiesListFragment.this.getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.main_fragment_cities_list, null);
         expListView = (ExpandableListView) view.findViewById(R.id.exListView);
@@ -120,14 +117,45 @@ public class MainCitiesListFragment extends Fragment implements ExpandableListVi
         // makes sure parent MainActivity implements
         // the callback interface. If not, it throws an exception.
         try {
-            citySelectedCallback = (ExpandableListView.OnChildClickListener) activity;
+            citySelectedCallback = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " The MainActivity activity must " +
                     "implement OnContactSelectedListener");
         }
     }
+    public interface OnFragmentInteractionListener {
 
+        public void onFragmentInteraction(long id);
+    }
+
+
+    public class DownloadXML extends AsyncTask<String, Integer, String> {
+
+        public ProgressDialog progressDialog;
+        String Url;
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setCancelable(true);
+            progressDialog.setMessage("downloading...");
+            progressDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... url) {
+            String content = null;
+            Url = url[0];
+            try {
+                content = DownloadData.downloadData(url[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return content;
+        }
+    }
 }
 
 

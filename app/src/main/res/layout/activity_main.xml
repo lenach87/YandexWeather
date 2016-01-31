@@ -13,4 +13,17 @@
         android:layout_height="match_parent">
 </FrameLayout>
 
+    <fragment
+            android:id="@+id/mainfragment"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:name="com.example.myapplication2.app.MainCitiesListFragment"/>
+    <fragment
+            android:id="@+id/detailFragment"
+            android:layout_width="wrap_content"
+            android:layout_weight="2"
+            android:layout_height="match_parent"
+            android:name="com.example.myapplication2.app.WeatherPageFragment"/>
+
 </LinearLayout>

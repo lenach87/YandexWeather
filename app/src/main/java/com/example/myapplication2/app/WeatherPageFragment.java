@@ -1,102 +1,206 @@
 package com.example.myapplication2.app;
 
-import android.app.ProgressDialog;
+import android.app.Activity;
+import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewFragment;
-import org.apache.commons.io.IOUtils;
+import android.webkit.WebViewClient;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+
+import static com.example.myapplication2.app.WeatherXmlPullParser.*;
 
 
-public class WeatherPageFragment extends WebViewFragment {
+public class WeatherPageFragment extends Fragment {
+
+    private WebView mWebView;
+    private boolean mIsWebViewAvailable;
+    private String mUrl = null;
+    final static String ARG_POSITION = "position";
+    int mCurrentPosition = -1;
+    private GetLinkToSite task;
+    private static String LOG_TAG = "Yandex Log";
 
 
-    public WeatherPageFragment(){
+    public WeatherPageFragment () {
+        super();
+    }
+
+    public static WeatherPageFragment newInstance () {
+        WeatherPageFragment fragment = new WeatherPageFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
 
-        // get the GUID from the managing activity.
-        Bundle arguments = getArguments();
-        long guid = arguments.getLong(MainActivity.GUID2);
+        final View view = inflater.inflate(R.layout.fragment_weather_page, container, false);
+        initInstance(view);
+        mWebView.setOnKeyListener(new View.OnKeyListener(){
 
-        // open the webview to the correct page.
-        WebView webView = getWebView();
-        webView.loadUrl(WeatherXmlPullParser.getLinkToSiteForCity(WeatherPageFragment.this.getActivity(), guid));
-        webView.getSettings().setJavaScriptEnabled(true);
 
-        return view;
-    }
-
-    public class DownloadXML extends AsyncTask<String, Integer, String> {
-
-        public ProgressDialog progressDialog;
-        String Url;
-
-        @Override
-        protected void onPreExecute(){
-            progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setCancelable(true);
-            progressDialog.setMessage("downloading...");
-            progressDialog.show();
-        }
-
-        @Override
-        protected String doInBackground(String ... url){
-            String content = null;
-            Url= url[0];
-            try{
-                content = downloadData(url[0]);
-            }catch (IOException e){
-                e.printStackTrace();
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
+                    mWebView.goBack();
+                    return true;
+                }
+                return false;
             }
 
-            return content;
-        }
+        });
+        mWebView.setWebViewClient(new InnerWebViewClient()); // forces it to open in app
+        mWebView.loadUrl(mUrl);
+        mIsWebViewAvailable = true;
+        WebSettings settings = mWebView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        return view;
 
-        //  @Override
-        public void onPostExecute(int result){
+    }
+
+    private void initInstance (View rootview) {
+        mWebView = (WebView) rootview.findViewById(R.id.webview);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.i(LOG_TAG, "OnStart method ");
+        // During startup, check if there are arguments passed to the fragment.
+        // onStart is a good place to do this because the layout has already been
+        // applied to the fragment at this point so we can safely call the method
+        // below that sets the article text.
+        Bundle args = getArguments();
+        if (args != null) {
+            // Set article based on argument passed in
+            long guid = args.getLong(MainActivity.GUID2);
 
             try {
-                WeatherXmlPullParser.getLinkToSiteForCity(WeatherPageFragment.this.getActivity(), result);
-                progressDialog.cancel();
-            }catch (Exception e) {
+                task = new GetLinkToSite(WeatherPageFragment.this.getActivity());
+                task.execute(getLinkToCity(guid));
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-            WeatherPageFragment fragment = new WeatherPageFragment();
-            WeatherPageFragment.this.getActivity().getFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).addToBackStack(null).commit();
         }
     }
 
 
-    public static String downloadData(String urlCity) throws IOException {
-        InputStream is = null;
-        try {
-            URL url = new URL(urlCity);
-            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setConnectTimeout(10000);
-            httpURLConnection.connect();
-            is = httpURLConnection.getInputStream();
-            Log.i("Download", "Download url");
-            return IOUtils.toString(is, "UTF-8");
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save the current article selection in case we need to recreate the fragment
+        outState.putInt(ARG_POSITION, mCurrentPosition);
+    }
+
+
+
+    public void loadUrl(String url) {
+        if (mIsWebViewAvailable) getWebView().loadUrl(mUrl = url);
+        else Log.w(LOG_TAG, "WebView cannot be found. Check the view and fragment have been loaded.");
+    }
+
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mWebView.onPause();
+    }
+
+//    @Override
+//    public void onResume() {
+//        mWebView.onResume();
+//        super.onResume();
+//    }
+
+
+    @Override
+    public void onDestroyView() {
+        mIsWebViewAvailable = false;
+        super.onDestroyView();
+    }
+
+
+    @Override
+    public void onDestroy() {
+        if (mWebView != null) {
+            mWebView.destroy();
+            mWebView = null;
         }
-        finally {
-            if (is !=null){
-                is.close();
+        super.onDestroy();
+    }
+
+    public WebView getWebView() {
+        return mIsWebViewAvailable ? mWebView : null;
+    }
+
+    /* To ensure links open within the application */
+    private class InnerWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            view.loadUrl(url);
+            return true;
+        }
+
+    }
+
+    public class GetLinkToSite extends AsyncTask<String, Integer, String> {
+
+//        public ProgressDialog progressDialog;
+//
+//        @Override
+//        protected void onPreExecute() {
+//            progressDialog = new ProgressDialog(getActivity());
+//            progressDialog.setCancelable(true);
+//            progressDialog.setMessage("downloading...");
+//            progressDialog.show();
+//        }
+
+        private Activity activityRef;
+
+        public GetLinkToSite (Activity activityRef) {
+            super();
+            this.activityRef = activityRef;
+        }
+
+        @Override
+        protected String doInBackground(String... url) {
+            String res;
+
+            try {
+                res = DownloadData.downloadData(url[0]);
+                Log.i(LOG_TAG, "url " + url[0] + " " + res);
+                return res;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
             }
         }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            mUrl = getLinkToSiteForCity(result);
+            Log.i(LOG_TAG, "url on post execute" + " " + mUrl);
+            if (mIsWebViewAvailable) getWebView().loadUrl(mUrl);
+            else Log.w(LOG_TAG, "WebView cannot be found. Check the view and fragment have been loaded.");
+        }
+    }
+
+    public String getLinkToCity(long id) {
+
+        String linkToWeatherForCity = LINK_FORECAST_FOR_PARTICULAR_CITY + id + ".xml";
+        Log.i(LOG_TAG, "Get link in method " + linkToWeatherForCity);
+        return linkToWeatherForCity;
     }
 }
-

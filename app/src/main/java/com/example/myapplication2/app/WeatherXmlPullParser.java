@@ -136,37 +136,53 @@ public class WeatherXmlPullParser {
 
     public static String getLinkToSiteForCity(String res) {
 
-        String linkToSite;
+        String linkToSite = null;
 
         try {
             Log.i(myTag, "Try weather xml pull parser" + res);
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             XmlPullParser xpp = factory.newPullParser();
-            xpp.setInput(new StringReader(res));
+            BufferedReader reader = new BufferedReader(new StringReader(res));
+            xpp.setInput(reader);
             int eventType = xpp.getEventType();
 
-            // Loop through pull events until we reach END_DOCUMENT
-            if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
-                linkToSite = xpp.getAttributeValue(null, "link");
-                Log.i(myTag, "Found link for city" + linkToSite);
-                return linkToSite;
-            }
-            else {
-                xpp.next();
-                if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
-                    linkToSite = xpp.getAttributeValue(null, "link");
-                    return linkToSite;
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                String tagname = "";
+                if (xpp.getName() != null) {
+                    tagname = xpp.getName();
                 }
-                else {
-                    return null;
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        if (xpp.getName().equalsIgnoreCase(FORECAST_START_TAG)) {
+                            linkToSite = xpp.getAttributeValue(null, "link");
+                            Log.i(myTag, "Found link for city" + linkToSite);
+                            return linkToSite;
+                        }
+                       break;
+
+
+                    case XmlPullParser.TEXT:
+                        break;
+
+                    case XmlPullParser.END_TAG:
+                        if (tagname.equalsIgnoreCase(FORECAST_START_TAG))
+                        {
+                            Log.i(myTag, "Reached end of file");
+                        }
+
+                        break;
+
+                    default:
+                        break;
+
                 }
+                eventType = xpp.next();
 
             }
-
         }
         catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+        return linkToSite;
     }
 }

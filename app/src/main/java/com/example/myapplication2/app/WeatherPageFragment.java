@@ -180,7 +180,9 @@ public class WeatherPageFragment extends Fragment {
             try {
                 res = DownloadData.downloadData(url[0]);
                 Log.i(LOG_TAG, "url " + url[0] + " " + res);
-                return res;
+                mUrl = getLinkToSiteForCity(res);
+                Log.i(LOG_TAG, "url " + " after pull parser" + mUrl);
+                return mUrl;
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
@@ -190,7 +192,6 @@ public class WeatherPageFragment extends Fragment {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            mUrl = getLinkToSiteForCity(result);
             Log.i(LOG_TAG, "url on post execute" + " " + mUrl);
             if (mIsWebViewAvailable) getWebView().loadUrl(mUrl);
             else Log.w(LOG_TAG, "WebView cannot be found. Check the view and fragment have been loaded.");

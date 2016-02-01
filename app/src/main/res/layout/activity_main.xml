@@ -18,12 +18,12 @@
             android:layout_width="wrap_content"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:name="com.example.myapplication2.app.MainCitiesListFragment"/>
+            android:name="com.example.myapplication2.app.fragments.MainCitiesListFragment"/>
     <fragment
             android:id="@+id/detailFragment"
             android:layout_width="wrap_content"
             android:layout_weight="2"
             android:layout_height="match_parent"
-            android:name="com.example.myapplication2.app.WeatherPageFragment"/>
+            android:name="com.example.myapplication2.app.fragments.WeatherPageFragment"/>
 
 </LinearLayout>

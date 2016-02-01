@@ -1,4 +1,4 @@
-package com.example.myapplication2.app;
+package com.example.myapplication2.app.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -11,6 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
+import com.example.myapplication2.app.services.DownloadData;
+import com.example.myapplication2.app.adapters.ExpListViewAdapter;
+import com.example.myapplication2.app.POJO.City;
+import com.example.myapplication2.app.POJO.Country;
+import com.example.myapplication2.app.R;
+import com.example.myapplication2.app.services.WeatherXmlPullParser;
 
 import java.io.IOException;
 import java.util.ArrayList;

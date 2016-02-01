@@ -1,7 +1,10 @@
-package com.example.myapplication2.app;
+package com.example.myapplication2.app.services;
 
 import android.content.Context;
 import android.util.Log;
+import com.example.myapplication2.app.POJO.City;
+import com.example.myapplication2.app.POJO.Country;
+import com.example.myapplication2.app.R;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 

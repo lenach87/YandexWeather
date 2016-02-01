@@ -1,8 +1,7 @@
-package com.example.myapplication2.app;
+package com.example.myapplication2.app.POJO;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Country implements Serializable {
 

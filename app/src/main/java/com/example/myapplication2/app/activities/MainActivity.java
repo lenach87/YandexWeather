@@ -1,4 +1,4 @@
-package com.example.myapplication2.app;
+package com.example.myapplication2.app.activities;
 
 import android.app.Activity;
 import android.app.FragmentManager;
@@ -7,6 +7,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
+import com.example.myapplication2.app.R;
+import com.example.myapplication2.app.fragments.MainCitiesListFragment;
+import com.example.myapplication2.app.fragments.WeatherPageFragment;
 
 public class MainActivity extends Activity implements MainCitiesListFragment.OnFragmentInteractionListener {
 

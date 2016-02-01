@@ -1,4 +1,4 @@
-package com.example.myapplication2.app;
+package com.example.myapplication2.app.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -12,10 +12,13 @@ import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import com.example.myapplication2.app.services.DownloadData;
+import com.example.myapplication2.app.activities.MainActivity;
+import com.example.myapplication2.app.R;
 
 import java.io.IOException;
 
-import static com.example.myapplication2.app.WeatherXmlPullParser.*;
+import static com.example.myapplication2.app.services.WeatherXmlPullParser.*;
 
 
 public class WeatherPageFragment extends Fragment {

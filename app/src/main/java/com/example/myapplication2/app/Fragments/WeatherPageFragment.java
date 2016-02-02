@@ -1,6 +1,5 @@
 package com.example.myapplication2.app.fragments;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,13 +11,14 @@ import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import com.example.myapplication2.app.services.DownloadData;
-import com.example.myapplication2.app.activities.MainActivity;
 import com.example.myapplication2.app.R;
+import com.example.myapplication2.app.activities.MainActivity;
+import com.example.myapplication2.app.services.DownloadData;
 
 import java.io.IOException;
 
-import static com.example.myapplication2.app.services.WeatherXmlPullParser.*;
+import static com.example.myapplication2.app.services.WeatherXmlPullParser.LINK_FORECAST_FOR_PARTICULAR_CITY;
+import static com.example.myapplication2.app.services.WeatherXmlPullParser.getLinkToSiteForCity;
 
 
 public class WeatherPageFragment extends Fragment {
@@ -85,11 +85,11 @@ public class WeatherPageFragment extends Fragment {
         // below that sets the article text.
         Bundle args = getArguments();
         if (args != null) {
-            // Set article based on argument passed in
+         
             long guid = args.getLong(MainActivity.GUID2);
 
             try {
-                task = new GetLinkToSite(WeatherPageFragment.this.getActivity());
+                task = new GetLinkToSite();
                 task.execute(getLinkToCity(guid));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -101,8 +101,6 @@ public class WeatherPageFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-        // Save the current article selection in case we need to recreate the fragment
         outState.putInt(ARG_POSITION, mCurrentPosition);
     }
 
@@ -158,23 +156,6 @@ public class WeatherPageFragment extends Fragment {
     }
 
     public class GetLinkToSite extends AsyncTask<String, Integer, String> {
-
-//        public ProgressDialog progressDialog;
-//
-//        @Override
-//        protected void onPreExecute() {
-//            progressDialog = new ProgressDialog(getActivity());
-//            progressDialog.setCancelable(true);
-//            progressDialog.setMessage("downloading...");
-//            progressDialog.show();
-//        }
-
-        private Activity activityRef;
-
-        public GetLinkToSite (Activity activityRef) {
-            super();
-            this.activityRef = activityRef;
-        }
 
         @Override
         protected String doInBackground(String... url) {

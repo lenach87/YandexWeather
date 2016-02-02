@@ -1,4 +1,4 @@
-package com.example.myapplication2.app.POJO;
+package com.example.myapplication2.app.data;
 
 import java.io.Serializable;
 import java.util.ArrayList;

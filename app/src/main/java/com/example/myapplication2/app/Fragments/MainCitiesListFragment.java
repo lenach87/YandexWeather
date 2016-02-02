@@ -13,8 +13,8 @@ import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import com.example.myapplication2.app.services.DownloadData;
 import com.example.myapplication2.app.adapters.ExpListViewAdapter;
-import com.example.myapplication2.app.POJO.City;
-import com.example.myapplication2.app.POJO.Country;
+import com.example.myapplication2.app.data.City;
+import com.example.myapplication2.app.data.Country;
 import com.example.myapplication2.app.R;
 import com.example.myapplication2.app.services.WeatherXmlPullParser;
 
@@ -29,7 +29,6 @@ public class MainCitiesListFragment extends Fragment implements ExpandableListVi
     private ExpListViewAdapter expListAdapter;
     private LinkedHashMap<Country, ArrayList<City>> countryCollection;
     private ArrayList<Country> countriesList;
-    private ArrayList<City> citiesList;
     private OnFragmentInteractionListener citySelectedCallback;
 
     public MainCitiesListFragment() {
